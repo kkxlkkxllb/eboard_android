@@ -1,9 +1,15 @@
 package org.eboard.app.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
+import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 
 import com.google.gson.Gson;
+import com.squareup.picasso.Picasso;
 
 import org.eboard.app.R;
 import org.eboard.app.core.User;
@@ -12,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.InjectView;
@@ -23,7 +30,7 @@ import io.socket.SocketIOException;
 /**
  * Created by libiao on 14-5-19.
  */
-public class ChatActivity extends BootstrapActivity {
+public class ChatActivity extends BootstrapFragmentActivity {
     @InjectView(R.id.scrollView) protected ScrollView scrollView;
     private SocketIO socket;
     public static final String SOCKET_URL = "http://158.182.150.91:19999";
@@ -34,6 +41,8 @@ public class ChatActivity extends BootstrapActivity {
     public static final String BCAST = "cbcast";
     public static final String SHARED_OBJECT = "shared_object";
     public static final String SYSTEM_MESSAGE = "system_message";
+
+    public static boolean load_user_list = false;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -68,6 +77,10 @@ public class ChatActivity extends BootstrapActivity {
                 String query = obj.toString();
                 socket = new SocketIO(SOCKET_URL);
                 socket.setQueryString("userinfo=" + query);
+
+                final Bundle users_args = new Bundle();
+                final UserListFragment frag = new UserListFragment();
+
                 socket.connect(new IOCallback() {
                     @Override
                     public void onMessage(JSONObject json, IOAcknowledge ack) {
@@ -105,11 +118,17 @@ public class ChatActivity extends BootstrapActivity {
                             Ln.d("auth success");
                         }
                         else if(USER_LIST.equals(event)) {
-                            Gson gson = new Gson();
-                            List<User> users = gson.fromJson(args[0].toString(),List.class);
-//                            for(User u: users) {
-//                                Ln.d("users:" + u);
-//                            }
+                            Ln.d(args);
+                            if (load_user_list == false){
+                                users_args.putString("user_list",args[0].toString());
+                                frag.setArguments(users_args);
+                                getFragmentManager()
+                                        .beginTransaction()
+                                        .add(R.id.user_list,frag)
+                                        .commit();
+                                load_user_list = true;
+                            }
+
                         }
                         else if(SYNC.equals(event)) {
                             Ln.d(args);
@@ -128,6 +147,35 @@ public class ChatActivity extends BootstrapActivity {
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            // Source:
+            // http://developer.android.com/training/implementing-navigation/ancestral.html
+            // This is the home button in the top left corner of the screen.
+            case android.R.id.home:
+                final Intent upIntent = NavUtils.getParentActivityIntent(this);
+                // If parent is not properly defined in AndroidManifest.xml upIntent will be null
+                // TODO hanlde upIntent == null
+                if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+                    // This activity is NOT part of this app's task, so create a new task
+                    // when navigating up, with a synthesized back stack.
+                    TaskStackBuilder.create(this)
+                            // Add all of this activity's parents to the back stack
+                            .addNextIntentWithParentStack(upIntent)
+                                    // Navigate up to the closest parent
+                            .startActivities();
+                } else {
+                    // This activity is part of this app's task, so simply
+                    // navigate up to the logical parent activity.
+                    NavUtils.navigateUpTo(this, upIntent);
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
