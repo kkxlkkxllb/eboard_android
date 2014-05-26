@@ -34,6 +34,8 @@ dependencies {
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     androidTestCompile 'org.mockito:mockito-core:1.9.5'
     compile files('libs/socketio.jar')
+    compile 'org.red5:android-rmtp-client:0.3@jar'
+    compile files('libs/apache-mina.jar')
 }
 
 android {
