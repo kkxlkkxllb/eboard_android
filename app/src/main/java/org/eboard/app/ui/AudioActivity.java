@@ -33,7 +33,7 @@ public class AudioActivity extends BootstrapActivity {
 
         clientManager.setMode(ClientManager.NETANDFILE);
         clientManager.setRunning(true);
-        clientManager.setRecording(true);
+//        clientManager.setRecording(true);
         Thread cmThread = new Thread(clientManager);
         cmThread.start();
     }

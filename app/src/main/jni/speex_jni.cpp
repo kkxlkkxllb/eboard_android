@@ -67,7 +67,7 @@ JNIEXPORT jint JNICALL Java_org_eboard_app_rtmp_encode_Speex_encode
 }
 
 extern "C"
-JNIEXPORT jint JNICALL Java_org_eboard_app_rtmp_encode_Speex_decode
+JNIEXPORT jint Java_org_eboard_app_rtmp_encode_Speex_decode
     (JNIEnv *env, jobject obj, jbyteArray encoded, jshortArray lin, jint size) {
 
         jbyte buffer[dec_frame_size];

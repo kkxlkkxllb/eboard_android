@@ -48,14 +48,12 @@ android {
         targetSdkVersion 19
         versionCode 102
         versionName '1.0'
-
-        ndk {
-            moduleName "libspeex"
-        }
     }
 
-
-
+    sourceSets.main {
+        jni.srcDirs = []
+        jniLibs.srcDir 'src/main/libs'
+    }
 
     packagingOptions {
         // Exclude file to avoid
@@ -81,6 +79,10 @@ android {
             packageNameSuffix '.debug'
             runProguard false
             // zipAlign false // this is default for debug
+            ndk {
+                moduleName "libspeex"
+                abiFilters "armeabi", "armeabi-v7a"
+            }
         }
         release {
             // runProguard true
