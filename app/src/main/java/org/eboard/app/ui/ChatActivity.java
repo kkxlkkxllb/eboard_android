@@ -2,8 +2,6 @@ package org.eboard.app.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
-import android.support.v4.app.TaskStackBuilder;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -27,12 +25,15 @@ import io.socket.IOCallback;
 import io.socket.SocketIO;
 import io.socket.SocketIOException;
 
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
+
 /**
  * Created by libiao on 14-5-19.
  */
-public class ChatActivity extends BootstrapFragmentActivity {
+public class ChatActivity extends BootstrapActivity {
     @InjectView(R.id.scrollView) protected ScrollView scrollView;
-    private SocketIO socket;
+    public SocketIO socket;
     public static final String SOCKET_URL = "http://158.182.150.91:19999";
 
     public static final String AUTH = "authenticate";
@@ -42,7 +43,8 @@ public class ChatActivity extends BootstrapFragmentActivity {
     public static final String SHARED_OBJECT = "shared_object";
     public static final String SYSTEM_MESSAGE = "system_message";
 
-    public static boolean load_user_list = false;
+    private final Bundle users_args = new Bundle();
+    private final UserListFragment frag = new UserListFragment();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -53,13 +55,7 @@ public class ChatActivity extends BootstrapFragmentActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-    }
-
-    protected void onStart() {
-        super.onStart();
-        Ln.d("start");
-        if(socket == null){
-            Ln.d("should once");
+        Ln.d("should once");
             JSONObject obj = new JSONObject();
 
             try {
@@ -74,12 +70,10 @@ public class ChatActivity extends BootstrapFragmentActivity {
                 e.printStackTrace();
             }
             try {
+
                 String query = obj.toString();
                 socket = new SocketIO(SOCKET_URL);
                 socket.setQueryString("userinfo=" + query);
-
-                final Bundle users_args = new Bundle();
-                final UserListFragment frag = new UserListFragment();
 
                 socket.connect(new IOCallback() {
                     @Override
@@ -119,75 +113,72 @@ public class ChatActivity extends BootstrapFragmentActivity {
                         }
                         else if(USER_LIST.equals(event)) {
                             Ln.d(args);
-                            if (load_user_list == false){
-                                users_args.putString("user_list",args[0].toString());
+                                users_args.putString("user_list", args[0].toString());
                                 frag.setArguments(users_args);
                                 getFragmentManager()
                                         .beginTransaction()
                                         .add(R.id.user_list,frag)
                                         .commit();
-                                load_user_list = true;
-                            }
-
                         }
                         else if(SYNC.equals(event)) {
-                            Ln.d(args);
+                            Ln.d("sync" + args);
                         }
                         else if(BCAST.equals(event)) {
-                            Ln.d(args);
+                            Ln.d("cast" + args);
                         }
                         else if(SHARED_OBJECT.equals(event)) {
-                            Ln.d(args);
+                            Ln.d("shared object" + args);
                         }
                         else if(SYSTEM_MESSAGE.equals(event)){
-                            Ln.d(args);
+                            Ln.d("sys msg" + args);
                         }
                     }
                 });
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
-        }
+
     }
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
-            // Source:
-            // http://developer.android.com/training/implementing-navigation/ancestral.html
             // This is the home button in the top left corner of the screen.
             case android.R.id.home:
-                final Intent upIntent = NavUtils.getParentActivityIntent(this);
-                // If parent is not properly defined in AndroidManifest.xml upIntent will be null
-                // TODO hanlde upIntent == null
-                if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
-                    // This activity is NOT part of this app's task, so create a new task
-                    // when navigating up, with a synthesized back stack.
-                    TaskStackBuilder.create(this)
-                            // Add all of this activity's parents to the back stack
-                            .addNextIntentWithParentStack(upIntent)
-                                    // Navigate up to the closest parent
-                            .startActivities();
-                } else {
-                    // This activity is part of this app's task, so simply
-                    // navigate up to the logical parent activity.
-                    NavUtils.navigateUpTo(this, upIntent);
-                }
+                // Don't call finish! Because activity could have been started by an
+                // outside activity and the home button would not operated as expected!
+                final Intent homeIntent = new Intent(this, MainActivity.class);
+                homeIntent.addFlags(FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(homeIntent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    @Override
     protected void onResume() {
         super.onResume();
     }
-    
+
+    @Override
     protected void onPause() {
         super.onPause();
     }
 
-    protected void onDestroy() {
-        super.onDestroy();
+    @Override
+    protected void onStop(){
+        super.onStop();
+        if (socket.isConnected()){
+            socket.disconnect();
+            Ln.d("socket should be disconnect");
+        }
     }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        Ln.d("it should be destroy");
+    }
+
 }

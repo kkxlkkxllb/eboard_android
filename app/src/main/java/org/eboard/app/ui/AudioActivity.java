@@ -27,19 +27,20 @@ public class AudioActivity extends BootstrapActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.audio_activity);
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+        clientManager.setMode(ClientManager.NETANDFILE);
+        clientManager.setRunning(true);
+        clientManager.setRecording(true);
+        Thread cmThread = new Thread(clientManager);
+        cmThread.start();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-
 
     }
 }

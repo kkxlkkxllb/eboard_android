@@ -35,7 +35,7 @@ public class ClientManager implements Runnable, Consumer {
 	}
 
 	private void netClientInit() {
-		netClient.setHost("192.168.1.200");
+		netClient.setHost("158.182.151.42");
 		netClient.setPort(1935);
 		netClient.setApp("live");
 		netClient.setChannle(1);

@@ -26,7 +26,9 @@ class Speex  {
 	private void load() {
 		try {
 			System.loadLibrary("speex");
+            Ln.d("speex loaded");
 		} catch (Throwable e) {
+            Ln.e("wtf:" + e);
 			e.printStackTrace();
 		}
 

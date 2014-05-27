@@ -36,6 +36,7 @@ dependencies {
     compile files('libs/socketio.jar')
     compile 'org.red5:android-rmtp-client:0.3@jar'
     compile files('libs/apache-mina.jar')
+    compile files('libs/slf4j-android-1.6.1-RC1.jar')
 }
 
 android {
@@ -47,7 +48,14 @@ android {
         targetSdkVersion 19
         versionCode 102
         versionName '1.0'
+
+        ndk {
+            moduleName "libspeex"
+        }
     }
+
+
+
 
     packagingOptions {
         // Exclude file to avoid
